@@ -42,13 +42,12 @@ const Login = () => {
             setloading(true);
             const res = await signInWithPopup(auth, provider)
             const user = res.user;
-            const name = user.displayName;
-            const email = user.email;
+            const idToken = await user.getIdToken();
 
             const result = await axios.post(serverUrl + "/api/auth/googlelogin", {
-                name,email
+                idToken
             }, {withCredentials:true});
-            setUserData({ name, email });
+            setUserData({ name: user.displayName, email: user.email });
             await getCurrentUser();
             setloading(false);
             navigate("/");
@@ -57,6 +56,7 @@ const Login = () => {
         catch (error) {
             console.error("Google Login error:", error);
             toast.error("Google-signin error");
+            setloading(false);
         }
     }
 

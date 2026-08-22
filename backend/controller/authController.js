@@ -2,6 +2,8 @@ const { genToken, genTokenAdmin } = require("../config/token.js");
 const User = require("../model/userModel.js");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
+require("../config/firebaseAdmin.js");
+const { getAuth } = require("firebase-admin/auth");
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -82,7 +84,14 @@ const logout = async (req, res) => {
 
 const googleLogin = async (req, res) => {
   try {
-    let { name, email } = req.body;
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({ message: "Firebase ID token is required" });
+    }
+
+    const decodedToken = await getAuth().verifyIdToken(idToken);
+    const { name, email } = decodedToken;
 
     let user = await User.findOne({ email });
     if (!user) {

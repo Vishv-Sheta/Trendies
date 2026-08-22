@@ -3,6 +3,7 @@ node_modules/
 
 # Ignore environment files
 .env
+firebase-service-account.json
 
 # Ignore logs
 npm-debug.log*
@@ -32,3 +33,7 @@ webhooks-code-understanding.md
 webhooks-logic.md
 interview-prep-2.md
 ai-service-explaination.md
+interview.md
+interview-question-answers.md
+oauth 2.0.md
+google-oauth-secure-flow.md

@@ -35,11 +35,10 @@ const Registration = () => {
         try{
             const res = await signInWithPopup(auth, provider)
             const user = res.user;
-            const name = user.displayName;
-            const email = user.email;
+            const idToken = await user.getIdToken();
 
             const result = await axios.post(serverUrl + "/api/auth/googlelogin", {
-                name,email
+                idToken
             }, {withCredentials:true});
             await getCurrentUser();
             toast.success("Account Created Successfully");
