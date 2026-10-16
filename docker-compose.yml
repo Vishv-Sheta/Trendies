@@ -1,0 +1,75 @@
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: trendies-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=trendies
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - trendies-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: trendies-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - PORT=3000
+      - NODE_ENV=development
+      - MONGODB_URI=${DOCKER_MONGODB_URI:-mongodb://mongo:27017/trendies}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - trendies-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY:-}
+        - VITE_RAZORPAY_KEY_ID=${VITE_RAZORPAY_KEY_ID:-}
+    container_name: trendies-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - trendies-network
+
+  admin:
+    build:
+      context: ./Admin
+      dockerfile: Dockerfile
+    container_name: trendies-admin
+    restart: unless-stopped
+    ports:
+      - "5174:80"
+    depends_on:
+      - backend
+    networks:
+      - trendies-network
+
+volumes:
+  mongo-data:
+
+networks:
+  trendies-network:
+    driver: bridge

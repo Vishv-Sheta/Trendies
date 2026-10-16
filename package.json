@@ -1,4 +1,8 @@
 {
+  "name": "trendies-workspace",
+  "scripts": {
+    "test:smoke": "node --test tests/smoke.test.js"
+  },
   "dependencies": {
     "mongodb": "^6.20.0"
   }
