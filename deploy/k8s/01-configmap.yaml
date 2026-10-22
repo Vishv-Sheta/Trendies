@@ -8,3 +8,6 @@ data:
   NODE_ENV: "development"
   # Default local MongoDB service inside the trendies namespace
   MONGODB_URI: "mongodb://mongo:27017/trendies"
+  # AI Chat Microservice internal service DNS
+  AI_SERVICE_URL: "http://ai-chat-service:5001"
+

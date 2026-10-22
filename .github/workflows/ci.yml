@@ -46,6 +46,13 @@ jobs:
           npm ci
           npm run build
 
+      - name: Install & Test AI Chat Microservice
+        run: |
+          cd microservices/ai-chat-service
+          npm install
+          npm test
+
+
   # -------------------------------------------------------------
   # Job 2: Docker Build Verification (No Publishing)
   # -------------------------------------------------------------
@@ -91,6 +98,15 @@ jobs:
           tags: trendies-admin:ci
           load: true
 
+      - name: Build AI Chat Microservice Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./microservices/ai-chat-service
+          file: ./microservices/ai-chat-service/Dockerfile
+          push: false
+          tags: trendies-ai-chat-service:ci
+          load: true
+
       - name: Scan Backend Image with Trivy (DevSecOps)
         uses: aquasecurity/trivy-action@master
         with:
@@ -128,4 +144,7 @@ jobs:
           (cd frontend && npm audit --audit-level=critical || true)
           echo "=== Admin Audit ==="
           (cd Admin && npm audit --audit-level=critical || true)
+          echo "=== AI Chat Service Audit ==="
+          (cd microservices/ai-chat-service && npm audit --audit-level=critical || true)
+
 

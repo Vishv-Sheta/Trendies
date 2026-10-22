@@ -74,6 +74,14 @@ test('Backend Module & Route Verification', async (t) => {
       assert.strictEqual(typeof fn, 'function', `Middleware ${mw} is not a callable function`);
     }
   });
+
+  await t.test('AI Chat Microservice components load successfully', () => {
+    const aiServicePath = path.resolve(__dirname, '..', 'microservices', 'ai-chat-service', 'services', 'storeInfoService');
+    const { getStoreInfo } = require(aiServicePath);
+    assert.strictEqual(typeof getStoreInfo, 'function', 'getStoreInfo is not a function');
+    const storeInfo = getStoreInfo('shipping policies');
+    assert.ok(storeInfo.message, 'Store info should have a message');
+  });
 });
 
 // Live HTTP Contract Tests (executed when backend is running)
@@ -108,4 +116,16 @@ test('Live Backend HTTP Contract Tests', { skip: !process.env.RUN_LIVE_TESTS }, 
     const data = await res.json();
     assert.ok(data.result);
   });
+
+  await t.test('Chat endpoint validates empty message', async () => {
+    const res = await fetch(`${SERVER_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: '   ' }),
+    });
+    assert.strictEqual(res.status, 400);
+    const data = await res.json();
+    assert.strictEqual(data.success, false);
+  });
 });
+

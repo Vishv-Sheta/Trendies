@@ -1,0 +1,17 @@
+{
+  "name": "ai-chat-service",
+  "version": "1.0.0",
+  "description": "Independent AI Fashion Assistant Microservice for Trendies",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.2.1",
+    "openai": "^6.41.0"
+  }
+}

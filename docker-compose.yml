@@ -32,11 +32,30 @@ services:
       - PORT=3000
       - NODE_ENV=development
       - MONGODB_URI=${DOCKER_MONGODB_URI:-mongodb://mongo:27017/trendies}
+      - AI_SERVICE_URL=http://ai-chat-service:5001
     depends_on:
       mongo:
         condition: service_healthy
     networks:
       - trendies-network
+
+  ai-chat-service:
+    build:
+      context: ./microservices/ai-chat-service
+      dockerfile: Dockerfile
+    container_name: trendies-ai-chat-service
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - NODE_ENV=development
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-placeholder}
+      - AI_MODEL=${AI_MODEL:-deepseek/deepseek-chat-v3-0324}
+      - BACKEND_SERVICE_URL=http://backend:3000
+    networks:
+      - trendies-network
+
 
   frontend:
     build:

@@ -7,6 +7,8 @@
 
 const { processMessage } = require("../services/chatService");
 
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || null;
+
 const handleChatMessage = async (req, res) => {
   try {
     const { message } = req.body;
@@ -39,8 +41,34 @@ const handleChatMessage = async (req, res) => {
     // userId is set by optionalAuth middleware (null if not logged in)
     const userId = req.userId || null;
 
-    const response = await processMessage(message, userId);
+    // Forward to independent AI Chat Microservice if configured
+    if (AI_SERVICE_URL) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
 
+        const aiResponse = await fetch(`${AI_SERVICE_URL}/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message, userId }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+
+        const data = await aiResponse.json();
+        return res.status(aiResponse.status).json(data);
+      } catch (forwardErr) {
+        console.warn(
+          "AI microservice forward failed, falling back to local chat service:",
+          forwardErr.message
+        );
+        const fallbackResponse = await processMessage(message, userId);
+        return res.status(fallbackResponse.success ? 200 : 500).json(fallbackResponse);
+      }
+    }
+
+    // Default local execution
+    const response = await processMessage(message, userId);
     return res.status(response.success ? 200 : 500).json(response);
   } catch (error) {
     console.error("chatController error:", error.message);
@@ -53,3 +81,4 @@ const handleChatMessage = async (req, res) => {
 };
 
 module.exports = { handleChatMessage };
+
