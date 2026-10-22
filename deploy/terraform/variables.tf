@@ -6,8 +6,8 @@ variable "kubeconfig_path" {
 
 variable "namespace_name" {
   type        = string
-  description = "Kubernetes namespace for the Trendies application"
-  default     = "trendies"
+  description = "Kubernetes namespace for the Trendies application (isolated from raw manifests)"
+  default     = "trendies-tf"
 }
 
 variable "environment" {

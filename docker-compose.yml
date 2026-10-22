@@ -43,8 +43,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY:-}
-        - VITE_RAZORPAY_KEY_ID=${VITE_RAZORPAY_KEY_ID:-}
+        - VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY:-AIzaSyAO1wt_rcmKmgwdP02AwGdHf3XXZEJSg98}
+        - VITE_RAZORPAY_KEY_ID=${VITE_RAZORPAY_KEY_ID:-your_razorpay_key_id}
     container_name: trendies-frontend
     restart: unless-stopped
     ports:

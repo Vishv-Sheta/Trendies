@@ -2,5 +2,6 @@
 # Terraform Variables Example
 # ==========================================
 kubeconfig_path = "~/.kube/config"
-namespace_name  = "trendies"
+namespace_name  = "trendies-tf"
 environment     = "development"
+

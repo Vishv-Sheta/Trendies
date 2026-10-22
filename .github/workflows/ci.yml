@@ -23,10 +23,7 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: |
-            backend/package-lock.json
-            frontend/package-lock.json
-            Admin/package-lock.json
+          cache-dependency-path: '**/package-lock.json'
 
       - name: Install Backend Dependencies
         run: |
@@ -78,6 +75,9 @@ jobs:
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
+          build-args: |
+            VITE_FIREBASE_API_KEY=AIzaSyPlaceholderClientApiKeyHere
+            VITE_RAZORPAY_KEY_ID=rzp_test_placeholder
           push: false
           tags: trendies-frontend:ci
           load: true
@@ -123,8 +123,9 @@ jobs:
       - name: Dependency Audit (npm audit)
         run: |
           echo "=== Backend Audit ==="
-          cd backend && npm audit --audit-level=critical || true
+          (cd backend && npm audit --audit-level=critical || true)
           echo "=== Frontend Audit ==="
-          cd ../frontend && npm audit --audit-level=critical || true
+          (cd frontend && npm audit --audit-level=critical || true)
           echo "=== Admin Audit ==="
-          cd ../Admin && npm audit --audit-level=critical || true
+          (cd Admin && npm audit --audit-level=critical || true)
+
