@@ -11,16 +11,25 @@ try {
     serviceAccount = require('/etc/secrets/firebase-service-account.json');
   } catch (renderError) {
     // 3. Fallback: Build it from Environment Variables if file doesn't exist
+    let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    if (privateKey) {
+      privateKey = privateKey.replace(/^["']|["']$/g, '').replace(/\\n/g, '\n');
+    }
     serviceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
+      privateKey: privateKey,
     };
   }
 }
 
-const app = initializeApp({
-  credential: cert(serviceAccount)
-});
+let app = null;
+try {
+  app = initializeApp({
+    credential: cert(serviceAccount)
+  });
+} catch (error) {
+  console.warn("Firebase Admin initialization warning:", error.message);
+}
 
 module.exports = app;

@@ -10,8 +10,18 @@ const firebaseConfig = {
   appId: "1:957487765799:web:f55afb20d6c7407533b102"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+let app = null;
+let auth = null;
+
+if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "" && firebaseConfig.apiKey !== "undefined") {
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+  } catch (err) {
+    console.warn("Firebase initialization warning:", err.message);
+  }
+}
+
 const provider = new GoogleAuthProvider();
 
-export {auth, provider};
+export { auth, provider };

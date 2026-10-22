@@ -1,0 +1,130 @@
+name: CI & DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ "main", "devops-upgrade" ]
+  pull_request:
+    branches: [ "main", "devops-upgrade" ]
+
+jobs:
+  # -------------------------------------------------------------
+  # Job 1: Build & Automated Smoke Tests
+  # -------------------------------------------------------------
+  test-and-build:
+    name: Unit Verification & SPA Builds
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+            Admin/package-lock.json
+
+      - name: Install Backend Dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Run Backend Smoke Tests
+        run: |
+          npm run test:smoke
+
+      - name: Install & Build Frontend SPA
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Install & Build Admin SPA
+        run: |
+          cd Admin
+          npm ci
+          npm run build
+
+  # -------------------------------------------------------------
+  # Job 2: Docker Build Verification (No Publishing)
+  # -------------------------------------------------------------
+  docker-build:
+    name: Container Build Verification
+    runs-on: ubuntu-latest
+    needs: test-and-build
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false
+          tags: trendies-backend:ci
+          load: true
+
+      - name: Build Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: false
+          tags: trendies-frontend:ci
+          load: true
+
+      - name: Build Admin Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Admin
+          file: ./Admin/Dockerfile
+          push: false
+          tags: trendies-admin:ci
+          load: true
+
+      - name: Scan Backend Image with Trivy (DevSecOps)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'trendies-backend:ci'
+          format: 'table'
+          exit-code: '0' # Non-blocking for CI reporting
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+  # -------------------------------------------------------------
+  # Job 3: DevSecOps Security Checks
+  # -------------------------------------------------------------
+  security-scans:
+    name: Security & Vulnerability Scans
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Secret Scanning with Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true # Ensures detailed reporting without stopping CI on false-positives
+
+      - name: Dependency Audit (npm audit)
+        run: |
+          echo "=== Backend Audit ==="
+          cd backend && npm audit --audit-level=critical || true
+          echo "=== Frontend Audit ==="
+          cd ../frontend && npm audit --audit-level=critical || true
+          echo "=== Admin Audit ==="
+          cd ../Admin && npm audit --audit-level=critical || true

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trendies-config
+  namespace: trendies
+data:
+  PORT: "3000"
+  NODE_ENV: "development"
+  # Default local MongoDB service inside the trendies namespace
+  MONGODB_URI: "mongodb://mongo:27017/trendies"
